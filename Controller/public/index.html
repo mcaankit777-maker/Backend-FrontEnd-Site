@@ -1,0 +1,240 @@
+<html>
+    <body bgcolor="pink">
+        <h2 style="text-align: center;color:blue">Display User Data</h2>
+        <center>
+             <form id="registerForm" style="text-align: right;">
+        <input type="text" id="regName" placeholder="Enter Your Name" style="height: 40px;" required/>
+        <input type="email" id="regEmail" placeholder="Enter Your Email" style="height: 40px;" required/>
+        <input type="password" id="regPassword" placeholder="Enter Your Password" style="height: 40px;" required/>
+        <input type="text" id="regLocation" placeholder="Enter Your Location" style="height: 40px;" required/>
+        <input type="number" id="regAge" placeholder="Enter Your Age" style="height: 40px;" required/>
+        <button type="submit">Register</button>
+    </form> <br><br><br>
+            <form id="loginForm" style="text-align: right;">
+                <input type="text" id="loginEmail" placeholder="Enter Your Email" style="height: 40px;" required/>
+                <input type="password" id="loginPassword" placeholder="Enter Your Password" style="height: 40px;" required/>
+                <button type="submit">Login</button>
+
+            </form>
+            <div id="profile"></div>
+            <br><br><br>
+            <form id="userForm">
+                <input type="text" id="searchBar" placeholder="Search Users..." style="height:40px; width:900px; margin:10px;">
+                <br><br>
+
+                <input type="text" id="name" placeholder="Enter Your Name" style="height: 40px;" required/>
+                <input type="number" id="age" placeholder="Enter Your Age" style="height: 40px;" required/>
+                <input type="text" id="location" placeholder="Enter Your Location" style="height: 40px;" required/>
+                <input type="text" id="email" placeholder="Enter Your Email" style="height: 40px;" required/>
+                <button type="submit" style="height: 40px;">Add User</button>
+            </form>
+            <table id="userTable" style="border: 2px solid blue;border-collapse:border; width: 1500px;">
+                <thead>
+                    <tr style="border: 2px;padding:8px;text-align:center;">
+                         <th style="border: 1px solid blue; padding: 8px;">Name</th>
+                         <th style="border: 1px solid blue; padding: 8px;">Age</th>
+                         <th style="border: 1px solid blue; padding: 8px;">Location</th>
+                         <th style="border: 1px solid blue; padding: 8px;">Email</th>
+                          <th style="border: 1px solid blue; padding: 8px;">Edit</th>
+                           <th style="border: 1px solid blue; padding: 8px;">Delete</th>
+                    </tr>
+                </thead>
+                <tbody style="border: 2px;padding:8px;text-align:center;">
+
+                </tbody>
+            </table>
+        </center>
+ <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    async function fetchUsers() {
+        try {
+            const response = await axios.get('http://127.0.0.1:9898/users');
+            const users = response.data;  
+
+            const tableBody = document.querySelector('#userTable tbody');
+            tableBody.innerHTML = '';
+
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                     <td style="border: 1px solid blue; padding: 8px;">${user.name}</td>
+                     <td style="border: 1px solid blue; padding: 8px;">${user.age}</td>
+                     <td style="border: 1px solid blue; padding: 8px;">${user.location}</td>
+                     <td style="border: 1px solid blue; padding: 8px;">${user.email}</td>
+                    <td style="border: 1px solid blue; padding: 8px;"><button onclick="editUser('${user._id}')">Edit</button></td>
+                   <td style="border: 1px solid blue; padding: 8px;"><button onclick="deleteUser('${user._id}')">Delete</button></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Unable to Fetch Users Data', error);
+        }
+    }
+    async function fetchUsers() {
+    try {
+        const response = await axios.get('http://127.0.0.1:9898/users');
+        const users = response.data;  
+
+        const searchQuery = document.getElementById('searchBar').value.toLowerCase();
+        const tableBody = document.querySelector('#userTable tbody');
+        tableBody.innerHTML = '';
+
+        users
+            .filter(user => 
+                user.name.toLowerCase().includes(searchQuery) ||
+                user.email.toLowerCase().includes(searchQuery) ||
+                user.location.toLowerCase().includes(searchQuery) ||
+                String(user.age).includes(searchQuery)
+            )
+            .forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                     <td style="border: 1px solid blue; padding: 8px;">${user.name}</td>
+                     <td style="border: 1px solid blue; padding: 8px;">${user.age}</td>
+                     <td style="border: 1px solid blue; padding: 8px;">${user.location}</td>
+                     <td style="border: 1px solid blue; padding: 8px;">${user.email}</td>
+                     <td style="border: 1px solid blue; padding: 8px;"><button onclick="editUser('${user._id}')">Edit</button></td>
+                     <td style="border: 1px solid blue; padding: 8px;"><button onclick="deleteUser('${user._id}')">Delete</button></td>
+                `;
+                tableBody.appendChild(row);
+            });
+    } catch (error) {
+        console.error('Unable to Fetch Users Data', error);
+    }
+}
+
+document.getElementById('searchBar').addEventListener('input', fetchUsers);
+
+
+
+    // Submit Form With Axios Post
+    document.getElementById('userForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const userData = {
+            name: document.getElementById('name').value,
+            age: document.getElementById('age').value,
+            location: document.getElementById('location').value,
+            email: document.getElementById('email').value
+        };
+
+        try {
+            await axios.post('http://127.0.0.1:9898/users', userData);
+            alert('User Created Successfully');
+            fetchUsers();  
+        } catch (error) {
+            console.log('Unable to create user', error);
+        }
+    });
+
+    // Edit User By Axios
+
+    async function editUser(id) {
+    const name = prompt("Enter new name:");
+    const age = prompt("Enter new age:");
+    const location = prompt("Enter new location:");
+    const email = prompt("Enter new email:");
+
+    try {
+        await axios.put(`http://127.0.0.1:9898/users/${id}`, {
+            name,
+            age,
+            location,
+            email
+        });
+        alert("User Updated Successfully");
+        fetchUsers(); 
+    } catch (error) {
+        console.error("Unable to update user", error);
+    }
+}
+
+// Delete User By Axios
+
+async function deleteUser(id) {
+    if (confirm("Are you sure you want to delete this user?")) {
+        try {
+            await axios.delete(`http://127.0.0.1:9898/users/${id}`);
+            alert("User Deleted Successfully");
+            fetchUsers(); 
+        } catch (error) {
+            console.error("Unable to delete user", error);
+        }
+    }
+}
+
+let token = null;
+
+// Login
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const loginData = {
+        email: document.getElementById('loginEmail').value,
+        password: document.getElementById('loginPassword').value
+    };
+
+    try {
+        const response = await axios.post('http://127.0.0.1:9898/login', loginData);
+        token = response.data.token;
+        localStorage.setItem('authToken', token); // save token in localStorage
+        alert('Login Successful');
+        fetchProfile();
+    } catch (error) {
+        console.error('Login Failed', error);
+    }
+});
+
+// Fetch Profile with Token
+async function fetchProfile() {
+    try {
+        const savedToken = localStorage.getItem('authToken');
+        const response = await axios.get('http://127.0.0.1:9898/profile', {
+            headers: { Authorization: `Bearer ${savedToken}` }
+        });
+        const user = response.data;
+        document.getElementById('profile').innerHTML = `
+            <h3>Welcome, ${user.name}</h3>
+            <p>Email: ${user.email}</p>
+            <p>Location: ${user.location}</p>
+            <p>Age: ${user.age}</p>
+        
+        `;
+    } catch (error) {
+        console.error('Unable to fetch profile', error);
+    }
+}
+function getAuthToken() {
+    return localStorage.getItem('authToken');
+}
+
+// Usage in any API call
+axios.get('http://127.0.0.1:9898/secure-data', {
+    headers: { Authorization: `Bearer ${getAuthToken()}` }
+});
+
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const registerData = {
+            name: document.getElementById('regName').value,
+            email: document.getElementById('regEmail').value,
+            password: document.getElementById('regPassword').value,
+            location: document.getElementById('regLocation').value,
+            age: document.getElementById('regAge').value
+        };
+
+        try {
+            const response = await axios.post('http://127.0.0.1:9898/register', registerData);
+            alert('Registration Successful! You can now login.');
+        } catch (error) {
+            console.error('Registration Failed', error);
+            alert('Error: Unable to register user');
+        }
+    });
+
+    window.onload = fetchUsers;
+</script>
+
+    </body>
+</html>
